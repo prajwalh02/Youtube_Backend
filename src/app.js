@@ -16,4 +16,4 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 
-export { app };
+export default app;  //export the app to use in other files
