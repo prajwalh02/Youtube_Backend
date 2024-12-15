@@ -53,11 +53,11 @@ const userSchema = new Schema(
 /* 
   pre hook is a middleware function 
   pre(even, callback fn) -> you cannot write callback fn like this () => {}
-  coz this call back don't have refernce of this 
+  coz this callback don't have refernce of this 
 */
 userSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
-    this.password = bcrypt.hash(this.password, 10);
+    this.password = await bcrypt.hash(this.password, 10);
     next();
   }
 });
@@ -66,7 +66,7 @@ userSchema.methods.isPasswordCorrect = async function (password) {
   await bcrypt.compare(password, this.password)
 };
 
-userSchema,methods.genrateAccessToken = async function() {
+userSchema.methods.genrateAccessToken = async function() {
   jwt.sign(
     {
       _id: this._id,
@@ -74,12 +74,12 @@ userSchema,methods.genrateAccessToken = async function() {
       userName: this.userName,
       fullName: this.fullName
     },
-    process.env.ACCESS_TOKEN_SECRE,
+    process.env.ACCESS_TOKEN_SECRET,
     {
       expiresIn: process.env.ACCESS_TOKEN_EXPIRY
     }
   )
-}
+};
 
 userSchema.methods.generateRefreshToken = async function() {
   jwt.sign(
@@ -91,6 +91,6 @@ userSchema.methods.generateRefreshToken = async function() {
       expiresIn: process.env.REFRESH_TOKEN_EXPIRY
     }
   )
-}
+};
 
 export const User = mongoose.model("User", userSchema);
