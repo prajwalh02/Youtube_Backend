@@ -6,24 +6,15 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 
 const registerUser = asyncHandler( async (req, res) => {
     
-    // get user details from frontend
-    // validation - fields should not empty
-    // check if user is already exist: username, email
-    // check for images, check for avatar
-    // upload them to cloudinary
-    // create user object - create entry in db
-    // remove password and refresh token field from response
-    // check for user creation
-    // return res
-
-
     // if data if coming from form/json then req.body
     const {fullName, email, userName, password} = req.body;
-    console.log("email:", email);
+    // console.log(req.body);
     
+/*
     if(fullName === "") {
         throw new ApiError(400, "FullName is required")
-    }
+    } 
+*/
 
     // instead of above line we can use another method for validation
     if(
@@ -32,7 +23,7 @@ const registerUser = asyncHandler( async (req, res) => {
         throw new ApiError(400, "All fields are required")
     }
 
-    const existedUser = User.findOne({
+    const existedUser = await User.findOne({
         $or: [{ userName },{ email }]
     }) 
 
@@ -41,20 +32,25 @@ const registerUser = asyncHandler( async (req, res) => {
     }
 
     // upload them to cloudinary
-    const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    const avatarLocalPath = req.files?.avatar[0]?.path; 
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    
+    let coverImageLocalPath;
+    if(req.files && Array.isArray(req.files.coverImage && req.files.length > 0)) {
+        coverImageLocalPath = req.files.coverImage[0].path;
+    }
 
     if(!avatarLocalPath) {
-        throw new ApiError(400, "Avatar file is required")
+        throw new ApiError(400, "Avatar file is a required")
     }
 
     // upload on cloudinary
     const avatar = await uploadOnCloudinary(avatarLocalPath);
     const coverImage =  await uploadOnCloudinary(coverImageLocalPath);
 
-    if(!avatar) {
+    if(!avatar) {        
         throw new ApiError(400, "Avatar file is required")
-    }
+    }    
 
     // create user object - create entry in db
     const user = await User.create({
@@ -76,8 +72,8 @@ const registerUser = asyncHandler( async (req, res) => {
         throw new ApiError(500, "Something went wrong while registering the user")
     }
 
-    return res.status(201),json(
-        new ApiResponse(200, createdUser, "User Registered successfully")
+    return res.status(201).json(
+        new ApiResponse(200, createdUser, "User Registered successfully") 
     )
 
  
