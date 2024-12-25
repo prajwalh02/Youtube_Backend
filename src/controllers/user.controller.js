@@ -3,12 +3,14 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/user.model.js"
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import jwt from 'jsonwebtoken';
+import mongoose from "mongoose";
 
 
 const generateAccessAndRefreshToken = async (userId) => {
     try {
         const user = await User.findById(userId);
-        const accessToken = user.genrateAccessToken();
+        const accessToken = user.generateAccessToken();
         const refreshToken = user.generateRefreshToken();
         
         user.refreshToken = refreshToken;
@@ -53,7 +55,7 @@ const registerUser = asyncHandler( async (req, res) => {
     // const coverImageLocalPath = req.files?.coverImage[0]?.path;
     
     let coverImageLocalPath;
-    if(req.files && Array.isArray(req.files.coverImage && req.files.length > 0)) {
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
         coverImageLocalPath = req.files.coverImage[0].path;
     }
 
@@ -63,7 +65,7 @@ const registerUser = asyncHandler( async (req, res) => {
 
     // upload on cloudinary
     const avatar = await uploadOnCloudinary(avatarLocalPath);
-    const coverImage =  await uploadOnCloudinary(coverImageLocalPath);
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
     if(!avatar) {        
         throw new ApiError(400, "Avatar file is required")
@@ -102,7 +104,7 @@ const loginUser = asyncHandler( async (req, res) => {
     const {email, userName, password} = req.body
 
     // username or email
-    if(!userName || !email) {
+    if(!userName && !email) {
         throw new ApiError(400, "username or email required")
     }
 
@@ -125,14 +127,14 @@ const loginUser = asyncHandler( async (req, res) => {
     // access and refresh token
     const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id);
 
-    // Excluede sensitive Data
+    // Exclude sensitive Data
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
     // Set Cookies for Tokens
     const options = {
         httpOnly: true,      // only the server can access/modified the cookie
         secure: true        // cookie will be sent over https
-    }
+    }    
 
     // send cookie
     return res
