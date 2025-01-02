@@ -28,7 +28,7 @@ const uploadOnCloudinary = async (localFilePath) => {
 }
 
 /**
- * Utility function to delete a file from Cloudinary
+ * Utility function to delete a file from Cloudinary 
  * @param {string} fileUrl - The URL of the file to delete
 */
 
@@ -40,7 +40,7 @@ const deleteFileOnCloudinary = async (fileUrl) => {
 
         // Delete the file from Cloudinary
         await cloudinary.uploader.destroy(publicId);
-        
+
     } catch (error) {
         throw new ApiError(400, "Failed to Delete File")
     }
